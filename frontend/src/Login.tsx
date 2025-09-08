@@ -1,46 +1,35 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "./auth/AuthProvider";
 
-interface LoginProps {
-  onLogin: () => void;
-}
-
-function Login({ onLogin }: LoginProps) {
-  const [username, setUsername] = useState("");
+function Login() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const auth = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    try {
-      const res = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email: username, password })
-      });
-
-      const data = await res.json();
-
-      if (data.ok) {
-        onLogin();
-      } else {
-        alert("Invalid credentials");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Error connecting to backend");
+    setBusy(true);
+    const ok = await auth.login(email, password);
+    setBusy(false);
+    if (ok) {
+      navigate("/dashboard");
+    } else {
+      alert("Invalid credentials");
     }
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
+    <div style={{ textAlign: "center", marginTop: 50 }}>
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         /><br /><br />
         <input
           type="password"
@@ -48,7 +37,9 @@ function Login({ onLogin }: LoginProps) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         /><br /><br />
-        <button type="submit">Login</button>
+        <button type="submit" disabled={busy}>
+          {busy ? "Logging in…" : "Login"}
+        </button>
       </form>
     </div>
   );
