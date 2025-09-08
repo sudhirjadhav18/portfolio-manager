@@ -1,5 +1,60 @@
 # Portfolio Manager
 
+## 🚀 Setup & Run
+
+### Prerequisites
+- Node.js 20+ and npm
+- PostgreSQL (local or cloud)
+
+### 1) Install dependencies
+```bash
+# From repo root
+cd backend && npm install
+cd ../frontend && npm install
+```
+
+### 2) Configure backend environment
+Create `backend/.env` with:
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DB_NAME?schema=public"
+JWT_SECRET="change-me"
+PORT=4000
+```
+
+Notes:
+- Backend CORS is configured for `http://localhost:5173` (Vite dev server).
+- Ensure the database exists before running migrations.
+
+### 3) Setup database (Prisma)
+```bash
+cd backend
+npx prisma generate
+npx prisma migrate dev --name init
+# If applying existing migrations in non-dev environments:
+# npx prisma migrate deploy
+```
+
+### 4) Run the apps
+```bash
+# Terminal A - backend
+cd backend
+npm run dev  # http://localhost:4000
+
+# Terminal B - frontend
+cd frontend
+npm run dev  # http://localhost:5173
+```
+
+The frontend will call the backend at `http://localhost:4000`. Make sure both are running.
+
+### 5) Auth endpoints (quick reference)
+- POST `/api/auth/register` → `{ email, name, password }`
+- POST `/api/auth/login` → `{ email, password }` (sets httpOnly cookie)
+- GET `/api/auth/me` (requires cookie)
+- POST `/api/auth/logout`
+
+---
+
 # 📌 Commit Message Conventions & Setup
 
 We follow the **Conventional Commits** standard to keep commit history clean and meaningful.
