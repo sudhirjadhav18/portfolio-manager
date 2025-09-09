@@ -81,7 +81,42 @@ This document describes how to contribute to this repository.
 
 ---
 
+---
+
+## 📝 Commit Message Conventions
+
+We follow **Conventional Commits** with automated validation. All commits must:
+
+### Required Format
+```
+<type>(scope): short description (fixes|closes|resolves #123)
+```
+
+### Commit Types
+- **feat** → new features
+- **fix** → bug fixes  
+- **docs** → documentation changes
+- **style** → code formatting (no logic changes)
+- **refactor** → code restructuring
+- **test** → adding/fixing tests
+- **chore** → build tools, dependencies, configs
+
+### Examples
+```bash
+feat(auth): add login with Supabase (fixes #12)
+fix(ui): correct button alignment (closes #34)
+chore(deps): upgrade React to 18.3 (resolves #56)
+```
+
+### Validation
+- ✅ Conventional commit format enforced
+- ✅ Issue references required (fixes|closes|resolves #number)
+- ✅ Pre-commit checks run automatically (ESLint, TypeScript)
+
+---
+
 ## 📝 Notes
 - Use `Fixes #<issue-number>` in PR descriptions to auto-close issues on merge.
 - Keep branch names short but descriptive.
 - Avoid committing directly to `main`.
+- All commits are automatically validated by git hooks.

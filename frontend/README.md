@@ -1,69 +1,129 @@
-# React + TypeScript + Vite
+# Frontend - Portfolio Manager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React frontend for the Portfolio Manager application.
 
-Currently, two official plugins are available:
+## 🛠️ Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 19** - UI library
+- **TypeScript** - Type safety
+- **Vite** - Build tool and dev server
+- **React Router** - Client-side routing
+- **Axios** - HTTP client
+- **ESLint** - Code linting
 
-## Expanding the ESLint configuration
+## 🚀 Development
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
+- Node.js 20+
+- Backend server running on `http://localhost:4000`
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Setup
+```bash
+# Install dependencies
+npm install
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Start development server
+npm run dev  # http://localhost:5173
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 📁 Project Structure
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+src/
+├── api/              # API client configuration
+│   └── axios.ts
+├── auth/             # Authentication
+│   ├── AuthContext.ts    # Context definition
+│   ├── AuthProvider.tsx  # Auth provider component
+│   ├── ProtectedRoute.tsx # Route protection
+│   └── useAuth.ts         # Auth hook
+├── App.tsx           # Main app component
+├── Dashboard.tsx     # Dashboard page
+├── Login.tsx         # Login page
+└── main.tsx          # App entry point
+```
+
+## 🔐 Authentication
+
+The app uses JWT-based authentication with HTTP-only cookies:
+
+- **Login**: `POST /api/auth/login`
+- **Register**: `POST /api/auth/register`
+- **Logout**: `POST /api/auth/logout`
+- **Current User**: `GET /api/auth/me`
+
+### Auth Context Usage
+```tsx
+import { useAuth } from './auth/useAuth';
+
+function MyComponent() {
+  const { user, login, logout, loading } = useAuth();
+  
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <Login />;
+  
+  return <div>Welcome, {user.name}!</div>;
+}
+```
+
+## 🎨 Styling
+
+Currently using basic CSS. Consider adding:
+- Tailwind CSS
+- Styled Components
+- CSS Modules
+- Material-UI
+
+## 🔧 Configuration
+
+### Environment Variables
+Create `.env.local` for local development:
+```env
+VITE_API_URL=http://localhost:4000
+```
+
+### Vite Configuration
+See `vite.config.ts` for build configuration.
+
+## 📦 Build & Deploy
+
+### Production Build
+```bash
+npm run build
+```
+
+### Preview Build
+```bash
+npm run preview
+```
+
+The built files will be in the `dist/` directory.
+
+## 🧪 Testing
+
+Testing setup not yet configured. Consider adding:
+- Vitest (unit testing)
+- React Testing Library
+- Cypress (E2E testing)
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**CORS Errors**
+- Ensure backend is running on `http://localhost:4000`
+- Check backend CORS configuration
+
+**Build Errors**
+- Run `npm run lint` to check for code issues
+- Ensure all TypeScript types are properly defined
+
+**Hot Reload Not Working**
+- Check if file exports only components (React Fast Refresh requirement)
+- Separate hooks and utilities into different files
