@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# Regex for commit type and short message format
+commit_regex='^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: .{1,50}'
+
+# Allow issue reference keywords: fixes|closes|resolves
+issue_regex='(fixes|closes|resolves) #[0-9]+'
+
+commit_msg_file=$1
+commit_msg=$(cat "$commit_msg_file")
+
+# ✅ Check conventional commit format
+if ! echo "$commit_msg" | grep -qE "$commit_regex"; then
+  echo "❌ Commit message format invalid!"
+  echo "✅ Format: <type>(scope): short description (fixes|closes|resolves #123)"
+  echo "Examples:"
+  echo "  feat(auth): add login with Supabase (fixes #12)"
+  echo "  fix(ui): correct button alignment (closes #34)"
+  echo "  chore(ci): update pipeline script (resolves #56)"
+  exit 1
+fi
+
+# ✅ Check for issue reference
+if ! echo "$commit_msg" | grep -qiE "$issue_regex"; then
+  echo "❌ Commit must reference an issue using 'fixes|closes|resolves #<number>'"
+  echo "Examples:"
+  echo "  feat(auth): add login with Supabase (fixes #12)"
+  echo "  fix(ui): correct button alignment (closes #34)"
+  echo "  chore(ci): update pipeline script (resolves #56)"
+  exit 1
+fi
