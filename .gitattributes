@@ -1,0 +1,2 @@
+# Ensure git hooks are executable
+.githooks/* text eol=lf

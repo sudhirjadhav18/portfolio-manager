@@ -1,0 +1,43 @@
+#!/bin/sh
+# Pre-commit hook to run linting and formatting checks
+
+echo "Running pre-commit checks..."
+
+# Check if we're in the frontend directory
+if [ -d "frontend" ]; then
+    echo "Checking frontend..."
+    cd frontend
+    
+    # Run ESLint
+    if command -v npm >/dev/null 2>&1; then
+        echo "Running ESLint..."
+        npm run lint
+        if [ $? -ne 0 ]; then
+            echo "❌ ESLint checks failed. Please fix the issues before committing."
+            exit 1
+        fi
+    fi
+    
+    cd ..
+fi
+
+# Check if we're in the backend directory
+if [ -d "backend" ]; then
+    echo "Checking backend..."
+    cd backend
+    
+    # Run TypeScript check
+    if command -v npm >/dev/null 2>&1; then
+        echo "Running TypeScript check..."
+        npm run build
+        if [ $? -ne 0 ]; then
+            echo "❌ TypeScript compilation failed. Please fix the issues before committing."
+            exit 1
+        fi
+    fi
+    
+    cd ..
+fi
+
+echo "✅ Pre-commit checks passed!"
+exit 0

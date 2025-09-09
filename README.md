@@ -6,12 +6,21 @@
 - Node.js 20+ and npm
 - PostgreSQL (local or cloud)
 
-### 1) Install dependencies
+### 1) Install dependencies & Setup Git Hooks
 ```bash
-# From repo root
+# From repo root - Automated setup (recommended)
+npm run setup
+
+# OR Manual setup
 cd backend && npm install
 cd ../frontend && npm install
+npm run setup:hooks
 ```
+
+**🔧 Git Hooks Setup**: The automated setup configures git hooks for commit message validation. If you prefer manual setup:
+- **Windows**: Run `setup-hooks.bat`
+- **Unix/Linux/Mac**: Run `./setup-hooks.sh`
+- **Node.js**: Run `npm run setup:hooks`
 
 ### 2) Configure backend environment
 Create `backend/.env` with:
@@ -55,9 +64,35 @@ The frontend will call the backend at `http://localhost:4000`. Make sure both ar
 
 ---
 
-# 📌 Commit Message Conventions & Setup
+# 📌 Commit Message Conventions & Git Hooks
 
-We follow the **Conventional Commits** standard to keep commit history clean and meaningful.
+We follow the **Conventional Commits** standard with **automated validation** to keep commit history clean and meaningful.
+
+## 🔧 Git Hooks Setup
+
+Git hooks are automatically configured during setup to enforce commit message conventions. The hooks will:
+
+- ✅ **Validate commit message format** (conventional commits)
+- ✅ **Require issue references** (fixes|closes|resolves #123)
+- ✅ **Run pre-commit checks** (linting, TypeScript compilation)
+
+### Manual Hook Setup (if needed)
+```bash
+# Configure git to use project hooks
+git config core.hooksPath .githooks
+
+# Make hooks executable (Unix systems)
+chmod +x .githooks/*
+```
+
+### Commit Message Requirements
+
+**Format**: `<type>(scope): short description (fixes|closes|resolves #123)`
+
+**Required Elements**:
+- ✅ Conventional commit type (feat, fix, docs, etc.)
+- ✅ Issue reference (fixes|closes|resolves #number)
+- ✅ Descriptive message (max 50 characters)
 
 ---
 
