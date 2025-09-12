@@ -1,9 +1,16 @@
-import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./modules/auth/AuthProvider";
 import ProtectedRoute from "./modules/auth/ProtectedRoute";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
+import Layout from "./components/layout/Layout";
+import Profile from "./pages/Profile.tsx";
+import AccountSettings from "./pages/AccountSettings.tsx";
+import AdminUsers from "./pages/AdminUsers.tsx";
+import Portfolios from "./pages/Portfolios.tsx";
+import Charts from "./pages/Charts.tsx";
+import Screener from "./pages/Screener.tsx";
+import Summary from "./pages/Summary.tsx";
 
 function App() {
   return (
@@ -12,14 +19,23 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route
-            path="/dashboard"
+            path="/"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <Layout />
               </ProtectedRoute>
             }
-          />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          >
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="account-settings" element={<AccountSettings />} />
+            <Route path="admin/users" element={<AdminUsers />} />
+            <Route path="portfolios" element={<Portfolios />} />
+            <Route path="charts" element={<Charts />} />
+            <Route path="screener" element={<Screener />} />
+            <Route path="summary" element={<Summary />} />
+          </Route>
         </Routes>
       </AuthProvider>
     </BrowserRouter>
