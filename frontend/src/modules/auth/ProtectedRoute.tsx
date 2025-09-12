@@ -8,3 +8,5 @@ export default function ProtectedRoute({ children }: { children: React.ReactElem
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }
+
+

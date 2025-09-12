@@ -1,5 +1,5 @@
 import React from "react";
-import { useAuth } from "./auth/useAuth";
+import { useAuth } from "../modules/auth/useAuth";
 
 function Dashboard() {
   const { user, logout } = useAuth();
@@ -17,3 +17,5 @@ function Dashboard() {
 }
 
 export default Dashboard;
+
+

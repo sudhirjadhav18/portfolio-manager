@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "./auth/useAuth";
+import { useAuth } from "../modules/auth/useAuth";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -46,3 +46,5 @@ function Login() {
 }
 
 export default Login;
+
+

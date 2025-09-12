@@ -6,3 +6,5 @@ export const useAuth = (): AuthContextType => {
   if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
   return ctx;
 };
+
+

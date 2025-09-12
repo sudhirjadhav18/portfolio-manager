@@ -1,9 +1,9 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./auth/AuthProvider";
-import ProtectedRoute from "./auth/ProtectedRoute";
-import Login from "./Login";
-import Dashboard from "./Dashboard";
+import { AuthProvider } from "./modules/auth/AuthProvider";
+import ProtectedRoute from "./modules/auth/ProtectedRoute";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
   return (
