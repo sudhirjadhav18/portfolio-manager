@@ -14,6 +14,18 @@ router.get("/me", authMiddleware, (req: any, res) => {
   res.json({ ok: true, user: req.user });
 });
 
+// List users (non-sensitive fields only)
+router.get("/users", authMiddleware, async (_req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: { id: true, email: true, name: true, createdAt: true }
+    });
+    res.json({ ok: true, users });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: "Failed to fetch users" });
+  }
+});
+
 export default router;
 
 
