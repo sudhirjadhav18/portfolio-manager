@@ -19,4 +19,12 @@ model User {
   name      String
   password  String   // store hashed password, not plain text
   createdAt DateTime @default(now())
+  roleId    String   @default("2")
+  role      Role     @relation(fields: [roleId], references: [id])
+}
+
+model Role {
+  id       String  @id
+  rolename String  @unique
+  users    User[]
 }

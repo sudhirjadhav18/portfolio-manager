@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState<Array<{ id: string; email: string; name: string; createdAt: string }>>([]);
+  const [users, setUsers] = useState<Array<{ id: string; email: string; name: string; role: string | null }>>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,7 +44,7 @@ export default function AdminUsers() {
                 <tr>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -52,7 +52,18 @@ export default function AdminUsers() {
                   <tr key={u.id}>
                     <td className="px-4 py-2 whitespace-nowrap">{u.name}</td>
                     <td className="px-4 py-2 whitespace-nowrap">{u.email}</td>
-                    <td className="px-4 py-2 whitespace-nowrap">{new Date(u.createdAt).toLocaleString()}</td>
+                    <td className="px-4 py-2 whitespace-nowrap">
+                      {u.role === "Admin" ? (
+                        <span title="Admin" aria-label="Admin" className="inline-flex items-center gap-1 text-amber-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                            <path d="M12 2l3 7h7l-5.5 4.1L18 21l-6-4-6 4 1.5-7.9L2 9h7z" />
+                          </svg>
+                          Admin
+                        </span>
+                      ) : (
+                        <span className="text-gray-500">Client</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
                 {users.length === 0 && (

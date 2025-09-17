@@ -17,9 +17,12 @@ router.get("/me", authMiddleware, (req: any, res) => {
 // List users (non-sensitive fields only)
 router.get("/users", authMiddleware, async (_req, res) => {
   try {
-    const users = await prisma.user.findMany({
-      select: { id: true, email: true, name: true, createdAt: true }
-    });
+    const users: Array<{ id: string; email: string; name: string; role: string }> = await (prisma as any).$queryRaw`
+      SELECT u.id, u.email, u.name, r.rolename AS role
+      FROM "public"."User" u
+      JOIN "public"."Role" r ON u."roleId" = r.id
+      ORDER BY CASE WHEN r.rolename = 'Admin' THEN 0 ELSE 1 END, u.name ASC
+    `;
     res.json({ ok: true, users });
   } catch (error) {
     res.status(500).json({ ok: false, message: "Failed to fetch users" });
