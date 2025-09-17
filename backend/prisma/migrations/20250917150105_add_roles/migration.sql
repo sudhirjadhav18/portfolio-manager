@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE "public"."User" ADD COLUMN     "roleId" TEXT NOT NULL DEFAULT '22222222-2222-2222-2222-222222222222';
+ALTER TABLE "public"."User" ADD COLUMN     "roleId" TEXT NOT NULL DEFAULT '2';
 
 -- CreateTable
 CREATE TABLE "public"."Role" (
