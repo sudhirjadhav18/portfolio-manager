@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./modules/auth/AuthProvider";
 import ProtectedRoute from "./modules/auth/ProtectedRoute";
+import AdminRoute from "./modules/auth/AdminRoute";
 import Login from "./pages/Login.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Layout from "./components/layout/Layout";
@@ -30,7 +31,14 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="profile" element={<Profile />} />
             <Route path="account-settings" element={<AccountSettings />} />
-            <Route path="admin/users" element={<AdminUsers />} />
+            <Route
+              path="admin/users"
+              element={
+                <AdminRoute>
+                  <AdminUsers />
+                </AdminRoute>
+              }
+            />
             <Route path="portfolios" element={<Portfolios />} />
             <Route path="charts" element={<Charts />} />
             <Route path="screener" element={<Screener />} />

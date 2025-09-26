@@ -1,4 +1,5 @@
 import React from "react";
+import { useAuth } from "../../modules/auth/useAuth";
 import { NavLink } from "react-router-dom";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -7,6 +8,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   }`;
 
 export default function Sidebar() {
+  const { user, loading } = useAuth();
   return (
     <aside className="hidden lg:block fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200">
       <div className="h-16 flex items-center px-4 border-b">
@@ -33,7 +35,9 @@ export default function Sidebar() {
           <div className="space-y-1">
             <NavLink to="/profile" className={navLinkClass}>Profile</NavLink>
             <NavLink to="/account-settings" className={navLinkClass}>Account Settings</NavLink>
-            <NavLink to="/admin/users" className={navLinkClass}>Admin - Users</NavLink>
+            {!loading && user?.role === "Admin" && (
+              <NavLink to="/admin/users" className={navLinkClass}>Admin - Users</NavLink>
+            )}
           </div>
         </div>
       </nav>

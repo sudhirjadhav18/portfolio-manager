@@ -76,10 +76,10 @@ router.put("/users/:id", authMiddleware, async (req: any, res) => {
     if (!me || me.roleId !== "1") return res.status(403).json({ ok: false, message: "Forbidden" });
 
     const userId = req.params.id as string;
-    const { username, email, name, password, roleId, isActive } = req.body as { username?: string; email?: string; name?: string; password?: string; roleId?: string; isActive?: boolean };
+  const { username: _ignoredUsername, email, name, password, roleId, isActive } = req.body as { username?: string; email?: string; name?: string; password?: string; roleId?: string; isActive?: boolean };
 
     const data: any = {};
-    if (typeof username === "string") data.username = username;
+    // Username is immutable via admin edit
     if (typeof email === "string") data.email = email;
     if (typeof name === "string") data.name = name;
     if (typeof roleId === "string") data.roleId = roleId;

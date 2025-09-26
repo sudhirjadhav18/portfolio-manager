@@ -53,17 +53,27 @@ export default function AdminUsers() {
           <div className="space-y-6">
             {/* Admins */}
             <Section title="Admins">
-              <UserTable rows={users.filter(u => u.isactive !== false && u.role === "Admin")} />
+              <UserTable
+                rows={users.filter(u => u.isactive !== false && u.role === "Admin")}
+                onEdit={(u) => { setEditing(u); setShowForm(true); }}
+              />
             </Section>
 
             {/* Clients */}
             <Section title="Clients">
-              <UserTable rows={users.filter(u => u.isactive !== false && u.role !== "Admin")} />
+              <UserTable
+                rows={users.filter(u => u.isactive !== false && u.role !== "Admin")}
+                onEdit={(u) => { setEditing(u); setShowForm(true); }}
+              />
             </Section>
 
             {/* Inactive */}
             <Section title="Inactive">
-              <UserTable rows={users.filter(u => u.isactive === false)} inactive />
+              <UserTable
+                rows={users.filter(u => u.isactive === false)}
+                inactive
+                onEdit={(u) => { setEditing(u); setShowForm(true); }}
+              />
             </Section>
           </div>
         )}
@@ -111,7 +121,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function UserTable({ rows, inactive = false }: { rows: AdminUserRow[]; inactive?: boolean }) {
+function UserTable({ rows, inactive = false, onEdit }: { rows: AdminUserRow[]; inactive?: boolean; onEdit?: (u: AdminUserRow) => void }) {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -121,6 +131,7 @@ function UserTable({ rows, inactive = false }: { rows: AdminUserRow[]; inactive?
             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+            <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -141,11 +152,19 @@ function UserTable({ rows, inactive = false }: { rows: AdminUserRow[]; inactive?
                   <span className="text-gray-500">Client</span>
                 )}
               </td>
+              <td className="px-4 py-2 whitespace-nowrap text-right">
+                {onEdit && (
+                  <button
+                    className="px-2 py-1 text-sm rounded border hover:bg-gray-50"
+                    onClick={() => onEdit(u)}
+                  >Edit</button>
+                )}
+              </td>
             </tr>
           ))}
           {rows.length === 0 && (
             <tr>
-              <td className="px-4 py-6 text-center text-gray-500" colSpan={4}>No users found.</td>
+              <td className="px-4 py-6 text-center text-gray-500" colSpan={5}>No users found.</td>
             </tr>
           )}
         </tbody>
@@ -171,7 +190,16 @@ function UserForm({ initial, onCancel, onSubmit, busy }: { initial?: AdminUserRo
         <form className="grid grid-cols-1 gap-4" autoComplete="off">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-            <input name="new-username" autoComplete="off" className="w-full rounded-md border border-gray-300 focus:border-primary-500 focus:ring-primary-500" value={username} onChange={e => setUsername(e.target.value)} required />
+            <input
+              name="new-username"
+              autoComplete="off"
+              className="w-full rounded-md border border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              required
+              disabled={isEdit}
+              title={isEdit ? "Username cannot be changed" : undefined}
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -200,7 +228,14 @@ function UserForm({ initial, onCancel, onSubmit, busy }: { initial?: AdminUserRo
         <div className="flex justify-end gap-2">
           <button onClick={onCancel} disabled={busy} className="px-3 py-2 rounded border">Cancel</button>
           <button
-            onClick={() => onSubmit({ username, email, name, password: password || undefined, roleId, isActive })}
+            onClick={() => onSubmit({
+              username: isEdit ? username /* ignored by backend */ : username,
+              email,
+              name,
+              password: password || undefined,
+              roleId,
+              isActive,
+            })}
             disabled={busy}
             className="px-3 py-2 rounded bg-primary-600 text-white"
           >{busy ? "Saving..." : "Save"}</button>
