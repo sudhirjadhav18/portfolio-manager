@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState<Array<{ id: string; email: string; name: string; role: string | null; isactive?: boolean }>>([]);
+  const [users, setUsers] = useState<Array<{ id: string; username: string; email: string | null; name: string; role: string | null; isactive?: boolean }>>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,13 +69,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function UserTable({ rows, inactive = false }: { rows: Array<{ id: string; email: string; name: string; role: string | null }>; inactive?: boolean }) {
+function UserTable({ rows, inactive = false }: { rows: Array<{ id: string; username: string; email: string | null; name: string; role: string | null }>; inactive?: boolean }) {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
           </tr>
@@ -84,7 +85,8 @@ function UserTable({ rows, inactive = false }: { rows: Array<{ id: string; email
           {rows.map((u) => (
             <tr key={u.id} className={inactive ? "opacity-50" : undefined}>
               <td className="px-4 py-2 whitespace-nowrap">{u.name}</td>
-              <td className="px-4 py-2 whitespace-nowrap">{u.email}</td>
+              <td className="px-4 py-2 whitespace-nowrap">{u.username}</td>
+              <td className="px-4 py-2 whitespace-nowrap">{u.email ?? "-"}</td>
               <td className="px-4 py-2 whitespace-nowrap">
                 {u.role === "Admin" ? (
                   <span title="Admin" aria-label="Admin" className="inline-flex items-center gap-1 text-amber-600">
@@ -101,7 +103,7 @@ function UserTable({ rows, inactive = false }: { rows: Array<{ id: string; email
           ))}
           {rows.length === 0 && (
             <tr>
-              <td className="px-4 py-6 text-center text-gray-500" colSpan={3}>No users found.</td>
+              <td className="px-4 py-6 text-center text-gray-500" colSpan={4}>No users found.</td>
             </tr>
           )}
         </tbody>

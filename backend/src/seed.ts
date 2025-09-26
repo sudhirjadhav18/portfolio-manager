@@ -7,6 +7,7 @@ dotenv.config();
 const prisma = new PrismaClient();
 
 async function main(): Promise<void> {
+  const username = "admin";
   const email = "admin@test.com";
   const name = "Admin";
   const rawPassword = "test";
@@ -27,12 +28,12 @@ async function main(): Promise<void> {
 
   // Upsert user and set role to Admin ('1')
   const user = await prisma.user.upsert({
-    where: { email },
-    update: { name, password: hashedPassword, roleId: "1", isActive: true },
-    create: { email, name, password: hashedPassword, roleId: "1", isActive: true },
+    where: { username },
+    update: { name, password: hashedPassword, roleId: "1", isActive: true, email },
+    create: { username, email, name, password: hashedPassword, roleId: "1", isActive: true },
   });
 
-  console.log("Seed complete. User:", { id: user.id, email: user.email, roleId: user.roleId });
+  console.log("Seed complete. User:", { id: user.id, username: user.username, roleId: user.roleId });
 }
 
 main()

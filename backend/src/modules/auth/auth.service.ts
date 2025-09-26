@@ -11,16 +11,16 @@ export class AuthService {
     this.prisma = prismaClient;
   }
 
-  async registerUser(email: string, name: string, password: string): Promise<User> {
+  async registerUser(username: string, name: string, password: string, email: string): Promise<User> {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await this.prisma.user.create({
-      data: { email, name, password: hashedPassword }
+      data: { username, name, password: hashedPassword, email }
     });
     return user;
   }
 
-  async validateUser(email: string, password: string): Promise<User | null> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+  async validateUser(username: string, password: string): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({ where: { username } });
     if (!user) return null;
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) return null;

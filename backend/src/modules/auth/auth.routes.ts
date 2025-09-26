@@ -10,15 +10,26 @@ const controller = createAuthController(authService);
 const authMiddleware = createAuthMiddleware(authService);
 
 router.use(controller);
-router.get("/me", authMiddleware, (req: any, res) => {
-  res.json({ ok: true, user: req.user });
+router.get("/me", authMiddleware, async (req: any, res) => {
+  try {
+    const id = req.user?.id as string | undefined;
+    if (!id) return res.status(401).json({ ok: false });
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, username: true, email: true, name: true },
+    });
+    if (!user) return res.status(404).json({ ok: false });
+    res.json({ ok: true, user });
+  } catch {
+    res.status(500).json({ ok: false });
+  }
 });
 
 // List users (non-sensitive fields only)
 router.get("/users", authMiddleware, async (_req, res) => {
   try {
-    const users: Array<{ id: string; email: string; name: string; role: string; isactive: boolean }> = await (prisma as any).$queryRaw`
-      SELECT u.id, u.email, u.name, u."isActive" as isactive, r.rolename AS role
+    const users: Array<{ id: string; username: string; email: string | null; name: string; role: string; isactive: boolean }> = await (prisma as any).$queryRaw`
+      SELECT u.id, u.username, u.email, u.name, u."isActive" as isactive, r.rolename AS role
       FROM "public"."User" u
       JOIN "public"."Role" r ON u."roleId" = r.id
       ORDER BY 

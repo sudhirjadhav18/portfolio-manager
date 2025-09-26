@@ -5,9 +5,9 @@ export const createAuthController = (authService: AuthService) => {
   const router = Router();
 
   router.post("/register", async (req: Request, res: Response) => {
-    const { email, name, password } = req.body;
+    const { username, name, password, email } = req.body;
     try {
-      const user = await authService.registerUser(email, name, password);
+      const user = await authService.registerUser(username, name, password, email);
       res.json({ ok: true, user });
     } catch (err) {
       res.status(400).json({ ok: false, message: "User already exists" });
@@ -15,10 +15,10 @@ export const createAuthController = (authService: AuthService) => {
   });
 
   router.post("/login", async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    const user = await authService.validateUser(email, password);
+    const { username, password } = req.body;
+    const user = await authService.validateUser(username, password);
     if (!user) return res.status(401).json({ ok: false, message: "Invalid credentials" });
-    const token = authService.createToken({ id: user.id, email: user.email });
+    const token = authService.createToken({ id: user.id, username: user.username });
     res.cookie("token", token, { httpOnly: true, sameSite: "lax" });
     res.json({ ok: true });
   });
