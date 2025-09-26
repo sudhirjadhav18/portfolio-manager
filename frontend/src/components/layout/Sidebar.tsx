@@ -27,7 +27,9 @@ export default function Sidebar() {
           <div className="space-y-1">
             <NavLink to="/portfolios" className={navLinkClass}>All Portfolios</NavLink>
             <NavLink to="/charts" className={navLinkClass}>Charts</NavLink>
-            <NavLink to="/screener" className={navLinkClass}>Screener</NavLink>
+            {!loading && user?.role === "Admin" && (
+              <NavLink to="/screener" className={navLinkClass}>Screener</NavLink>
+            )}
           </div>
         </div>
         <div>

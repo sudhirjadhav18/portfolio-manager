@@ -41,7 +41,14 @@ function App() {
             />
             <Route path="portfolios" element={<Portfolios />} />
             <Route path="charts" element={<Charts />} />
-            <Route path="screener" element={<Screener />} />
+            <Route
+              path="screener"
+              element={
+                <AdminRoute>
+                  <Screener />
+                </AdminRoute>
+              }
+            />
             <Route path="summary" element={<Summary />} />
           </Route>
         </Routes>
