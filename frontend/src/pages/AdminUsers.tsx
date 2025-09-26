@@ -1,9 +1,15 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import api from "../api/axios";
+import { AdminUserRow } from "../datamodels/AdminUserRow";
+import { useAuth } from "../modules/auth/useAuth";
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState<Array<{ id: string; username: string; email: string | null; name: string; role: string | null; isactive?: boolean }>>([]);
+  const { user } = useAuth();
+  const [users, setUsers] = useState<AdminUserRow[]>([]);
+  const [showForm, setShowForm] = useState<boolean>(false);
+  const [editing, setEditing] = useState<AdminUserRow | null>(null);
+  const [formBusy, setFormBusy] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,7 +21,8 @@ export default function AdminUsers() {
       .get("/api/auth/users")
       .then((res) => {
         if (!isMounted) return;
-        setUsers(res.data.users ?? []);
+        const rows = (res.data.users ?? []).map((u: AdminUserRow) => AdminUserRow.fromApi(u));
+        setUsers(rows);
       })
       .catch((err) => {
         if (!isMounted) return;
@@ -35,6 +42,11 @@ export default function AdminUsers() {
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Admin - Users</h1>
       <div className="bg-white rounded-lg shadow p-4">
+        {user?.role === "Admin" && (
+          <div className="mb-4 flex gap-2">
+            <button onClick={() => { setEditing(null); setShowForm(true); }} className="px-3 py-2 rounded bg-primary-600 text-white">New User</button>
+          </div>
+        )}
         {loading && <div>Loading users...</div>}
         {error && <div className="text-red-600">{error}</div>}
         {!loading && !error && (
@@ -55,6 +67,36 @@ export default function AdminUsers() {
             </Section>
           </div>
         )}
+        {showForm && (
+          <UserForm
+            key={editing?.id || "new"}
+            initial={editing ?? undefined}
+            busy={formBusy}
+            onCancel={() => { if (!formBusy) setShowForm(false); }}
+            onSubmit={async (payload) => {
+              setFormBusy(true);
+              try {
+                if (editing) {
+                  const res = await api.put(`/api/auth/users/${editing.id}`, payload);
+                  if (res.data?.ok) {
+                    setUsers(prev => prev.map(u => u.id === editing.id ? AdminUserRow.fromApi(res.data.user) : u));
+                    setShowForm(false);
+                  }
+                } else {
+                  const res = await api.post(`/api/auth/users`, payload);
+                  if (res.data?.ok) {
+                    setUsers(prev => [...prev, AdminUserRow.fromApi(res.data.user)]);
+                    setShowForm(false);
+                  }
+                }
+              } catch (e) {
+                alert(e?.response?.data?.message || "Failed to save user");
+              } finally {
+                setFormBusy(false);
+              }
+            }}
+          />
+        )}
       </div>
     </div>
   );
@@ -69,7 +111,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function UserTable({ rows, inactive = false }: { rows: Array<{ id: string; username: string; email: string | null; name: string; role: string | null }>; inactive?: boolean }) {
+function UserTable({ rows, inactive = false }: { rows: AdminUserRow[]; inactive?: boolean }) {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -108,6 +150,62 @@ function UserTable({ rows, inactive = false }: { rows: Array<{ id: string; usern
           )}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function UserForm({ initial, onCancel, onSubmit, busy }: { initial?: AdminUserRow; onCancel: () => void; onSubmit: (payload: { username: string; email: string; name: string; password?: string; roleId?: string; isActive?: boolean }) => Promise<void>; busy: boolean }) {
+  const [username, setUsername] = useState<string>(initial?.username ?? "");
+  const [email, setEmail] = useState<string>(initial?.email ?? "");
+  const [name, setName] = useState<string>(initial?.name ?? "");
+  const [password, setPassword] = useState<string>("");
+  const [roleId, setRoleId] = useState<string>(initial?.role === "Admin" ? "1" : "2");
+  const [isActive, setIsActive] = useState<boolean>(initial?.isactive !== false);
+
+  const isEdit = Boolean(initial);
+
+  return (
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4">
+      <div className="w-full max-w-lg bg-white rounded-lg shadow p-6 space-y-4">
+        <h3 className="text-lg font-semibold">{isEdit ? "Edit User" : "New User"}</h3>
+        <form className="grid grid-cols-1 gap-4" autoComplete="off">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+            <input name="new-username" autoComplete="off" className="w-full rounded-md border border-gray-300 focus:border-primary-500 focus:ring-primary-500" value={username} onChange={e => setUsername(e.target.value)} required />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input name="new-email" autoComplete="off" type="email" className="w-full rounded-md border border-gray-300 focus:border-primary-500 focus:ring-primary-500" value={email} onChange={e => setEmail(e.target.value)} required />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <input name="new-name" autoComplete="off" className="w-full rounded-md border border-gray-300 focus:border-primary-500 focus:ring-primary-500" value={name} onChange={e => setName(e.target.value)} required />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password {isEdit && <span className="text-gray-400">(leave blank to keep)</span>}</label>
+            <input name="new-password" autoComplete="new-password" type="password" className="w-full rounded-md border border-gray-300 focus:border-primary-500 focus:ring-primary-500" value={password} onChange={e => setPassword(e.target.value)} placeholder={isEdit ? "" : undefined} required={!isEdit} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+            <select name="new-role" autoComplete="off" className="w-full rounded-md border border-gray-300 focus:border-primary-500 focus:ring-primary-500" value={roleId} onChange={e => setRoleId(e.target.value)}>
+              <option value="1">Admin</option>
+              <option value="2">Client</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <input id="active" name="new-active" autoComplete="off" type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} />
+            <label htmlFor="active">Active</label>
+          </div>
+        </form>
+        <div className="flex justify-end gap-2">
+          <button onClick={onCancel} disabled={busy} className="px-3 py-2 rounded border">Cancel</button>
+          <button
+            onClick={() => onSubmit({ username, email, name, password: password || undefined, roleId, isActive })}
+            disabled={busy}
+            className="px-3 py-2 rounded bg-primary-600 text-white"
+          >{busy ? "Saving..." : "Save"}</button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -30,7 +30,9 @@ function Login() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
             <input
               type="text"
-              className="w-full rounded-md border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              name="login-username"
+              autoComplete="username"
+              className="w-full rounded-md border border-gray-300 focus:border-primary-500 focus:ring-primary-500 autofill:shadow-[inset_0_0_0_30px_white]"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -40,7 +42,9 @@ function Login() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <input
               type="password"
-              className="w-full rounded-md border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+              name="login-password"
+              autoComplete="current-password"
+              className="w-full rounded-md border border-gray-300 focus:border-primary-500 focus:ring-primary-500 autofill:shadow-[inset_0_0_0_30px_white]"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
