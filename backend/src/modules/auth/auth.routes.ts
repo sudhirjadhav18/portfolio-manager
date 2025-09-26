@@ -25,6 +25,32 @@ router.get("/me", authMiddleware, async (req: any, res) => {
   }
 });
 
+// Update my profile (self-service)
+router.put("/me", authMiddleware, async (req: any, res) => {
+  try {
+    const id = req.user?.id as string | undefined;
+    if (!id) return res.status(401).json({ ok: false });
+
+    const { username: _ignoreUsername, email, name, password } = req.body as { username?: string; email?: string; name?: string; password?: string };
+    const data: any = {};
+    if (typeof email === "string") data.email = email;
+    if (typeof name === "string") data.name = name;
+    if (typeof password === "string" && password.trim().length > 0) {
+      const bcrypt = (await import("bcrypt")).default;
+      data.password = await bcrypt.hash(password, 10);
+    }
+
+    const user = await prisma.user.update({
+      where: { id },
+      data,
+      select: { id: true, username: true, email: true, name: true, roleId: true, role: { select: { rolename: true } } },
+    });
+    res.json({ ok: true, user: { id: user.id, username: user.username, email: user.email, name: user.name, roleId: user.roleId, role: user.role?.rolename ?? null } });
+  } catch (error: any) {
+    res.status(400).json({ ok: false, message: error?.message || "Failed to update profile" });
+  }
+});
+
 // List users (non-sensitive fields only)
 router.get("/users", authMiddleware, async (_req, res) => {
   try {
