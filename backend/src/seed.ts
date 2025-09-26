@@ -12,25 +12,24 @@ async function main(): Promise<void> {
   const name = "Admin";
   const rawPassword = "test";
 
-  // Ensure default roles exist (ids '1' = Admin, '2' = Client)
-  await prisma.role.upsert({
-    where: { id: "1" },
-    update: {},
-    create: { id: "1", rolename: "Admin" },
-  });
-  await prisma.role.upsert({
-    where: { id: "2" },
-    update: {},
-    create: { id: "2", rolename: "Client" },
-  });
+  // Ensure default roles exist (ids will autoincrement)
+  let adminRole = await prisma.role.findUnique({ where: { rolename: "Admin" } });
+  if (!adminRole) {
+    adminRole = await prisma.role.create({ data: { rolename: "Admin" } as any });
+  }
+  let clientRole = await prisma.role.findUnique({ where: { rolename: "Client" } });
+  if (!clientRole) {
+    clientRole = await prisma.role.create({ data: { rolename: "Client" } as any });
+  }
+  if (!adminRole) throw new Error("Admin role missing after upsert");
 
   const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
   // Upsert user and set role to Admin ('1')
   const user = await prisma.user.upsert({
     where: { username },
-    update: { name, password: hashedPassword, roleId: "1", isActive: true, email },
-    create: { username, email, name, password: hashedPassword, roleId: "1", isActive: true },
+    update: { name, password: hashedPassword, roleId: adminRole.id as any, isActive: true, email },
+    create: { username, email, name, password: hashedPassword, roleId: adminRole.id as any, isActive: true },
   });
 
   console.log("Seed complete. User:", { id: user.id, username: user.username, roleId: user.roleId });

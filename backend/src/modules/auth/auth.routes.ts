@@ -12,14 +12,15 @@ const authMiddleware = createAuthMiddleware(authService);
 router.use(controller);
 router.get("/me", authMiddleware, async (req: any, res) => {
   try {
-    const id = req.user?.id as string | undefined;
+    const id = Number(req.user?.id);
     if (!id) return res.status(401).json({ ok: false });
     const user = await prisma.user.findUnique({
-      where: { id },
+      where: { id: id as any },
       select: { id: true, username: true, email: true, name: true, roleId: true, role: { select: { rolename: true } } },
     });
     if (!user) return res.status(404).json({ ok: false });
-    res.json({ ok: true, user: { id: user.id, username: user.username, email: user.email, name: user.name, roleId: user.roleId, role: user.role?.rolename ?? null } });
+    const roleName = (user as any).role?.rolename ?? null;
+    res.json({ ok: true, user: { id: user.id, username: user.username, email: user.email, name: user.name, roleId: user.roleId, role: roleName } });
   } catch {
     res.status(500).json({ ok: false });
   }
@@ -28,7 +29,7 @@ router.get("/me", authMiddleware, async (req: any, res) => {
 // Update my profile (self-service)
 router.put("/me", authMiddleware, async (req: any, res) => {
   try {
-    const id = req.user?.id as string | undefined;
+    const id = Number(req.user?.id);
     if (!id) return res.status(401).json({ ok: false });
 
     const { username: _ignoreUsername, email, name, password } = req.body as { username?: string; email?: string; name?: string; password?: string };
@@ -41,11 +42,12 @@ router.put("/me", authMiddleware, async (req: any, res) => {
     }
 
     const user = await prisma.user.update({
-      where: { id },
+      where: { id: id as any },
       data,
       select: { id: true, username: true, email: true, name: true, roleId: true, role: { select: { rolename: true } } },
     });
-    res.json({ ok: true, user: { id: user.id, username: user.username, email: user.email, name: user.name, roleId: user.roleId, role: user.role?.rolename ?? null } });
+    const roleName = (user as any).role?.rolename ?? null;
+    res.json({ ok: true, user: { id: user.id, username: user.username, email: user.email, name: user.name, roleId: user.roleId, role: roleName } });
   } catch (error: any) {
     res.status(400).json({ ok: false, message: error?.message || "Failed to update profile" });
   }
@@ -72,22 +74,23 @@ router.get("/users", authMiddleware, async (_req, res) => {
 // Admin-only: create user
 router.post("/users", authMiddleware, async (req: any, res) => {
   try {
-    const requesterId = req.user?.id as string | undefined;
+    const requesterId = Number(req.user?.id);
     if (!requesterId) return res.status(401).json({ ok: false });
-    const me = await prisma.user.findUnique({ where: { id: requesterId }, select: { roleId: true } });
-    if (!me || me.roleId !== "1") return res.status(403).json({ ok: false, message: "Forbidden" });
+    const me = await prisma.user.findUnique({ where: { id: requesterId as any }, select: { roleId: true } });
+    if (!me || Number(me.roleId) !== 1) return res.status(403).json({ ok: false, message: "Forbidden" });
 
-    const { username, email, name, password, roleId = "2", isActive = true } = req.body as { username: string; email: string; name: string; password: string; roleId?: string; isActive?: boolean };
+    const { username, email, name, password, roleId = 2, isActive = true } = req.body as { username: string; email: string; name: string; password: string; roleId?: number | string; isActive?: boolean };
     if (!username || !email || !name || !password) return res.status(400).json({ ok: false, message: "Missing required fields" });
 
     const bcrypt = (await import("bcrypt")).default;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { username, email, name, password: hashedPassword, roleId, isActive },
+      data: { username, email, name, password: hashedPassword, roleId: Number(roleId) as any, isActive },
       select: { id: true, username: true, email: true, name: true, roleId: true, role: { select: { rolename: true } }, isActive: true },
     });
-    res.json({ ok: true, user: { ...user, role: user.role?.rolename ?? null, isactive: user.isActive } });
+    const roleName = (user as any).role?.rolename ?? null;
+    res.json({ ok: true, user: { ...user, role: roleName, isactive: user.isActive } });
   } catch (error: any) {
     res.status(400).json({ ok: false, message: error?.message || "Failed to create user" });
   }
@@ -96,19 +99,19 @@ router.post("/users", authMiddleware, async (req: any, res) => {
 // Admin-only: update user
 router.put("/users/:id", authMiddleware, async (req: any, res) => {
   try {
-    const requesterId = req.user?.id as string | undefined;
+    const requesterId = Number(req.user?.id);
     if (!requesterId) return res.status(401).json({ ok: false });
-    const me = await prisma.user.findUnique({ where: { id: requesterId }, select: { roleId: true } });
-    if (!me || me.roleId !== "1") return res.status(403).json({ ok: false, message: "Forbidden" });
+    const me = await prisma.user.findUnique({ where: { id: requesterId as any }, select: { roleId: true } });
+    if (!me || Number(me.roleId) !== 1) return res.status(403).json({ ok: false, message: "Forbidden" });
 
-    const userId = req.params.id as string;
-  const { username: _ignoredUsername, email, name, password, roleId, isActive } = req.body as { username?: string; email?: string; name?: string; password?: string; roleId?: string; isActive?: boolean };
+    const userId = Number(req.params.id);
+  const { username: _ignoredUsername, email, name, password, roleId, isActive } = req.body as { username?: string; email?: string; name?: string; password?: string; roleId?: number | string; isActive?: boolean };
 
     const data: any = {};
     // Username is immutable via admin edit
     if (typeof email === "string") data.email = email;
     if (typeof name === "string") data.name = name;
-    if (typeof roleId === "string") data.roleId = roleId;
+    if (typeof roleId === "number" || typeof roleId === "string") data.roleId = Number(roleId);
     if (typeof isActive === "boolean") data.isActive = isActive;
     if (typeof password === "string" && password.trim().length > 0) {
       const bcrypt = (await import("bcrypt")).default;
@@ -116,11 +119,12 @@ router.put("/users/:id", authMiddleware, async (req: any, res) => {
     }
 
     const user = await prisma.user.update({
-      where: { id: userId },
+      where: { id: userId as any },
       data,
       select: { id: true, username: true, email: true, name: true, roleId: true, role: { select: { rolename: true } }, isActive: true },
     });
-    res.json({ ok: true, user: { ...user, role: user.role?.rolename ?? null, isactive: user.isActive } });
+    const roleName = (user as any).role?.rolename ?? null;
+    res.json({ ok: true, user: { ...user, role: roleName, isactive: user.isActive } });
   } catch (error: any) {
     res.status(400).json({ ok: false, message: error?.message || "Failed to update user" });
   }
