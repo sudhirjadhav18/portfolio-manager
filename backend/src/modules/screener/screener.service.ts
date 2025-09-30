@@ -3,7 +3,7 @@ import prisma from "../../shared/prisma";
 export type ScreenerRow = {
   id: number;
   stockId: number;
-  code: string;
+  symbol: string;
   name: string;
   ltp: string; // decimal as string
   price_6m: string; // decimal as string
@@ -22,16 +22,16 @@ export const ScreenerService = {
       include: { stock: true },
       orderBy: [
         { isSelected: "desc" },
-        { stock: { code: "asc" } },
+        { stock: { symbol: "asc" } },
       ],
     });
 
     return rows.map((r) => ({
       id: r.id,
       stockId: r.stockId,
-      code: r.stock.code,
-      name: r.stock.name,
-      ltp: r.stock.ltp.toString(),
+        symbol: r.stock?.symbol ?? "",
+      name: r.stock?.name ?? "",
+      ltp: r.stock?.ltp?.toString() ?? "0",
       price_6m: r.price_6m.toString(),
       price_1yr: r.price_1yr.toString(),
       isSelected: r.isSelected,
@@ -47,9 +47,9 @@ export const ScreenerService = {
     return {
       id: updated.id,
       stockId: updated.stockId,
-      code: updated.stock.code,
-      name: updated.stock.name,
-      ltp: updated.stock.ltp.toString(),
+        symbol: updated.stock?.symbol ?? "",
+      name: updated.stock?.name ?? "",
+      ltp: updated.stock?.ltp?.toString() ?? "0",
       price_6m: updated.price_6m.toString(),
       price_1yr: updated.price_1yr.toString(),
       isSelected: updated.isSelected,
@@ -66,7 +66,7 @@ export const ScreenerService = {
       const base = 100 + i * 2;
       const ltp = generateRandomPrice(base, 25);
       return {
-        code: `STK${String(i + 1).padStart(3, "0")}`,
+        symbol: `STK${String(i + 1).padStart(3, "0")}`,
         name: `Stock ${i + 1}`,
         ltp,
       };
@@ -74,7 +74,7 @@ export const ScreenerService = {
 
     const createdStocks = await prisma.$transaction(
       stocksData.map((s) =>
-        prisma.stock.create({ data: { code: s.code, name: s.name, ltp: s.ltp } })
+        prisma.stock.create({ data: { symbol: s.symbol, name: s.name, ltp: s.ltp } })
       )
     );
 

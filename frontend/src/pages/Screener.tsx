@@ -18,6 +18,47 @@ function computePercent(current: number, past: number): number {
 }
 
 export default function Screener() {
+  const [uploading, setUploading] = React.useState(false);
+  const [uploadProgress, setUploadProgress] = React.useState<{ current: number; total: number } | null>(null);
+  const [showJsonPopup, setShowJsonPopup] = React.useState(false);
+  const [jsonText, setJsonText] = React.useState("");
+  const [jsonError, setJsonError] = React.useState("");
+
+  const handleDownloadStocks = () => setShowJsonPopup(true);
+
+  const handleJsonSubmit = async () => {
+    setJsonError("");
+    setUploading(true);
+    setUploadProgress(null);
+    try {
+      const parsed = JSON.parse(jsonText);
+      if (!parsed?.data || !Array.isArray(parsed.data)) {
+        setJsonError("Invalid JSON: missing data array");
+        setUploading(false);
+        return;
+      }
+      const stocks = parsed.data.map((item: any) => ({
+        symbol: item.symbol,
+        ltp: item.lastPrice,
+        priority: item.priority
+      })).filter(s => s.symbol && s.ltp !== undefined);
+      if (stocks.length === 0) {
+        setJsonError("No valid stocks found in JSON");
+        setUploading(false);
+        return;
+      }
+      await api.post("/api/screener/upload-stocks", { stocks });
+      setUploadProgress({ current: stocks.length, total: stocks.length });
+      setShowJsonPopup(false);
+      setJsonText("");
+      await load();
+    } catch (e) {
+      setJsonError("Invalid JSON format");
+      console.error(e);
+    }
+    setUploading(false);
+    setUploadProgress(null);
+  };
   const [rows, setRows] = React.useState<Row[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [seeding, setSeeding] = React.useState<boolean>(false);
@@ -79,15 +120,63 @@ export default function Screener() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Screener</h1>
-        <button
-          onClick={seed}
-          disabled={seeding}
-          className="px-3 py-2 rounded bg-indigo-600 text-white disabled:opacity-50"
-          title="Clears tables and inserts 50 dummy stocks"
-        >
-          {seeding ? "Seeding..." : "Seed 50 Dummy Stocks"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={seed}
+            disabled={seeding}
+            className="px-3 py-2 rounded bg-indigo-600 text-white disabled:opacity-50"
+            title="Clears tables and inserts 50 dummy stocks"
+          >
+            {seeding ? "Seeding..." : "Seed 50 Dummy Stocks"}
+          </button>
+          <button
+            onClick={handleDownloadStocks}
+            className="px-3 py-2 rounded bg-green-600 text-white"
+          >
+            Download Stocks
+          </button>
+        </div>
       </div>
+
+      {showJsonPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg relative">
+            {uploading && (
+              <div className="absolute inset-0 bg-white bg-opacity-80 flex flex-col items-center justify-center z-10">
+                <div className="mb-2 text-indigo-600 font-semibold">Uploading stocks...</div>
+                {uploadProgress && (
+                  <div className="mb-2">{`Progress: ${uploadProgress.current} / ${uploadProgress.total}`}</div>
+                )}
+                <div className="loader border-4 border-indigo-600 border-t-transparent rounded-full w-8 h-8 animate-spin"></div>
+              </div>
+            )}
+            <h2 className="text-lg font-semibold mb-2">Paste JSON Data</h2>
+            <div className="mb-2 text-sm text-gray-700">
+              <span>Copy JSON from </span>
+              <a
+                href="https://www.nseindia.com/api/equity-stockIndices?index=NIFTY%20LARGEMIDCAP%20250"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline"
+              >
+                Nifty Large MidCap 250
+              </a>
+              <span> and paste below.</span>
+            </div>
+            <textarea
+              className="w-full h-40 border rounded p-2 mb-2"
+              value={jsonText}
+              onChange={e => setJsonText(e.target.value)}
+              placeholder="Paste JSON here..."
+            />
+            {jsonError && <div className="text-red-600 mb-2">{jsonError}</div>}
+            <div className="flex gap-2 justify-end">
+              <button className="px-3 py-2 rounded bg-gray-300" onClick={() => setShowJsonPopup(false)}>Cancel</button>
+              <button className="px-3 py-2 rounded bg-green-600 text-white" onClick={handleJsonSubmit}>Submit</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-lg shadow overflow-auto">
         <table className="min-w-full text-sm">

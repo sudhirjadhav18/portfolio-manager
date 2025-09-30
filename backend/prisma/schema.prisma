@@ -33,7 +33,7 @@ model Role {
 
 model Stock {
   id   Int    @id @default(autoincrement())
-  code String @unique
+  symbol String @unique
   name String
   ltp  Decimal @db.Decimal(18, 4)
 
