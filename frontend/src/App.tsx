@@ -12,6 +12,7 @@ import Portfolios from "./pages/Portfolios.tsx";
 import Charts from "./pages/Charts.tsx";
 import Screener from "./pages/Screener.tsx";
 import Summary from "./pages/Summary.tsx";
+import ZerodhaTokenGenerator from "./pages/ZerodhaTokenGenerator";
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
             />
             <Route path="portfolios" element={<Portfolios />} />
             <Route path="charts" element={<Charts />} />
+              <Route path="zerodha-token" element={<ZerodhaTokenGenerator />} />
             <Route
               path="screener"
               element={
