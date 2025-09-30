@@ -10,7 +10,6 @@ const authMiddleware = createAuthMiddleware(authService);
 
 
 router.get("/", authMiddleware, ScreenerController.list);
-router.post("/seed", authMiddleware, ScreenerController.seed);
 router.patch("/:id/toggle", authMiddleware, ScreenerController.toggle);
 router.post("/upload-stocks", authMiddleware, ScreenerController.uploadStocks);
 

@@ -55,46 +55,6 @@ export const ScreenerService = {
       isSelected: updated.isSelected,
     } as ScreenerRow;
   },
-
-  async seedDummy(count: number = 50) {
-    await prisma.$transaction([
-      prisma.screener.deleteMany(),
-      prisma.stock.deleteMany(),
-    ]);
-
-    const stocksData = Array.from({ length: count }).map((_, i) => {
-      const base = 100 + i * 2;
-      const ltp = generateRandomPrice(base, 25);
-      return {
-        symbol: `STK${String(i + 1).padStart(3, "0")}`,
-        name: `Stock ${i + 1}`,
-        ltp,
-      };
-    });
-
-    const createdStocks = await prisma.$transaction(
-      stocksData.map((s) =>
-        prisma.stock.create({ data: { symbol: s.symbol, name: s.name, ltp: s.ltp } })
-      )
-    );
-
-    await prisma.$transaction(
-      createdStocks.map((stock) => {
-        const price6m = generateRandomPrice(Number(stock.ltp), 20);
-        const price1y = generateRandomPrice(Number(stock.ltp), 40);
-        return prisma.screener.create({
-          data: {
-            stockId: stock.id,
-            price_6m: price6m,
-            price_1yr: price1y,
-            isSelected: false,
-          },
-        });
-      })
-    );
-
-    return { inserted: count };
-  },
 };
 
 

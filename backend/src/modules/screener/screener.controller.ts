@@ -58,12 +58,6 @@ export const ScreenerController = {
     res.json(rows);
   },
 
-  async seed(req: Request, res: Response) {
-    const count = Number(req.query.count ?? 50);
-    const result = await ScreenerService.seedDummy(count);
-    res.json(result);
-  },
-
   async toggle(req: Request, res: Response) {
     const id = Number(req.params.id);
     const { isSelected } = req.body as { isSelected: boolean };

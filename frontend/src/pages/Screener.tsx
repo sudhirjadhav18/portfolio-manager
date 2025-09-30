@@ -61,7 +61,6 @@ export default function Screener() {
   };
   const [rows, setRows] = React.useState<Row[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
-  const [seeding, setSeeding] = React.useState<boolean>(false);
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -77,22 +76,12 @@ export default function Screener() {
     load();
   }, [load]);
 
-  const seed = async () => {
-    setSeeding(true);
-    try {
-      await api.post("/api/screener/seed");
-      await load();
-    } finally {
-      setSeeding(false);
-    }
-  };
-
   const toggleSelected = async (id: string, next: boolean) => {
     const prev = rows;
     setRows((r) => r.map((x) => (x.id === id ? { ...x, isSelected: next } : x)));
     try {
       await api.patch(`/api/screener/${id}/toggle`, { isSelected: next });
-      await load();
+      // Do not reload or sort the list
     } catch (e) {
       console.error(e);
       setRows(prev);
@@ -100,20 +89,15 @@ export default function Screener() {
   };
 
   const enriched = React.useMemo(() => {
-    return rows
-      .map((r) => {
-        const ltp = Number(r.ltp);
-        const p6 = Number(r.price_6m);
-        const p1 = Number(r.price_1yr);
-        const pct6 = computePercent(ltp, p6);
-        const pct1 = computePercent(ltp, p1);
-        const combined = (pct6 + pct1) / 2;
-        return { ...r, pct6, pct1, combined };
-      })
-      .sort((a, b) => {
-        if (a.isSelected !== b.isSelected) return a.isSelected ? -1 : 1;
-        return b.combined - a.combined;
-      });
+    return rows.map((r) => {
+      const ltp = Number(r.ltp);
+      const p6 = Number(r.price_6m);
+      const p1 = Number(r.price_1yr);
+      const pct6 = computePercent(ltp, p6);
+      const pct1 = computePercent(ltp, p1);
+      const combined = (pct6 + pct1) / 2;
+      return { ...r, pct6, pct1, combined };
+    });
   }, [rows]);
 
   return (
@@ -122,18 +106,25 @@ export default function Screener() {
         <h1 className="text-2xl font-semibold">Screener</h1>
         <div className="flex gap-2">
           <button
-            onClick={seed}
-            disabled={seeding}
-            className="px-3 py-2 rounded bg-indigo-600 text-white disabled:opacity-50"
-            title="Clears tables and inserts 50 dummy stocks"
-          >
-            {seeding ? "Seeding..." : "Seed 50 Dummy Stocks"}
-          </button>
-          <button
             onClick={handleDownloadStocks}
             className="px-3 py-2 rounded bg-green-600 text-white"
           >
             Download Stocks
+          </button>
+          <button
+            onClick={async () => {
+              setLoading(true);
+              await load();
+            }}
+            className="px-3 py-2 rounded bg-gray-600 text-white"
+            title="Refresh stocks view"
+            disabled={loading}
+          >
+            {loading ? (
+              <span className="flex items-center gap-2"><span className="loader border-2 border-white border-t-transparent rounded-full w-4 h-4 animate-spin"></span>Refreshing...</span>
+            ) : (
+              "Refresh"
+            )}
           </button>
         </div>
       </div>
